@@ -275,6 +275,133 @@ class TerminalBufferTest {
 
         assertEquals("", buffer.getLine(0, true));
     }
+
+    @Test
+    @DisplayName("getCharAt() should return correct character from screen")
+    void getCharAtShouldReturnCorrectChar() {
+        TerminalBuffer buffer = new TerminalBuffer(5, 2, 10);
+
+        buffer.write("HELLOWORLD");
+
+        assertEquals('H', buffer.getCharAt(0, 0, false));
+        assertEquals('O', buffer.getCharAt(0, 4, false));
+        assertEquals('W', buffer.getCharAt(1, 0, false));
+        assertEquals('D', buffer.getCharAt(1, 4, false));
+    }
+
+    @Test
+    @DisplayName("getLine() should return correct line from screen")
+    void getLineFromScreen() {
+        TerminalBuffer buffer = new TerminalBuffer(5, 2, 10);
+
+        buffer.write("HELLO");
+        buffer.write("WORLD");
+
+        assertEquals("HELLO", buffer.getLine(0, false));
+        assertEquals("WORLD", buffer.getLine(1, false));
+    }
+
+    @Test
+    @DisplayName("getLine() should return correct line from scrollback")
+    void getLineFromScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(3, 2, 10);
+
+        buffer.write("123456789");
+
+        assertEquals("123", buffer.getLine(0, true));
+        assertEquals("456", buffer.getLine(0, false));
+        assertEquals("789", buffer.getLine(1, false));
+    }
+
+    @Test
+    @DisplayName("getLine() should return empty string for out-of-bounds indices")
+    void getLineOutOfBounds() {
+        TerminalBuffer buffer = new TerminalBuffer(3, 2, 10);
+
+        buffer.write("123");
+
+        assertEquals("", buffer.getLine(-1, false));
+        assertEquals("", buffer.getLine(10, false));
+        assertEquals("", buffer.getLine(-1, true));
+        assertEquals("", buffer.getLine(5, true));
+    }
+
+    @Test
+    @DisplayName("getAttributesAt() should return correct attributes from screen")
+    void getAttributesFromScreen() {
+        TerminalBuffer buffer = new TerminalBuffer(5, 2, 10);
+
+        buffer.setAttributes(Color.RED, Color.BLACK, true, false, false);
+        buffer.write("A");
+
+        Attributes attr = buffer.getAttributesAt(0, 0, false);
+
+        assertNotNull(attr);
+        assertEquals(Color.RED, attr.fg);
+        assertEquals(Color.BLACK, attr.bg);
+        assertTrue(attr.bold);
+        assertFalse(attr.italic);
+        assertFalse(attr.underline);
+    }
+
+    @Test
+    @DisplayName("getAttributesAt() should return null for out-of-bounds indices")
+    void getAttributesOutOfBounds() {
+        TerminalBuffer buffer = new TerminalBuffer(5, 2, 10);
+
+        assertNull(buffer.getAttributesAt(-1, 0, false));
+        assertNull(buffer.getAttributesAt(0, -1, false));
+        assertNull(buffer.getAttributesAt(10, 0, false));
+        assertNull(buffer.getAttributesAt(0, 10, false));
+        assertNull(buffer.getAttributesAt(0, 0, true));
+    }
+
+    @Test
+    @DisplayName("getScreenContent() should return all screen lines as string")
+    void getScreenContentTest() {
+        TerminalBuffer buffer = new TerminalBuffer(5, 2, 10);
+
+        buffer.write("HELLO");
+        buffer.write("WORLD");
+
+        String expected = "HELLO\nWORLD\n";
+        assertEquals(expected, buffer.getScreenContent());
+    }
+
+    @Test
+    @DisplayName("getScreenContent() should reflect cleared screen")
+    void getScreenContentAfterClear() {
+        TerminalBuffer buffer = new TerminalBuffer(5, 2, 10);
+
+        buffer.write("HELLO\nWORLD");
+        buffer.clearScreen();
+
+        String expected = "     \n     \n";
+        assertEquals(expected, buffer.getScreenContent());
+    }
+
+    @Test
+    @DisplayName("getFullContent() should return scrollback + screen")
+    void getFullContentWithScrollback() {
+        TerminalBuffer buffer = new TerminalBuffer(3, 2, 10);
+
+        buffer.write("123456789");
+
+        String expected = "123\n456\n789\n";
+        assertEquals(expected, buffer.getFullContent());
+    }
+
+    @Test
+    @DisplayName("getFullContent() should reflect cleared screen and scrollback")
+    void getFullContentAfterClearAll() {
+        TerminalBuffer buffer = new TerminalBuffer(3, 2, 10);
+
+        buffer.write("123456789");
+        buffer.clearAll();
+
+        String expected = "   \n   \n";
+        assertEquals(expected, buffer.getFullContent());
+    }
 }
 
 
