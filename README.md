@@ -1,4 +1,4 @@
-# intern-terminal-emulator
+# Terminal emulator
 
 ## Intro
 **Terminal text buffer** — the core data structure that terminal emulators use to store and manipulate displayed text.
